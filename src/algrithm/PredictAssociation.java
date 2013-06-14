@@ -18,6 +18,8 @@ import java.util.Map;
 import hb.HibernateSessionFactory;
 
 import org.hibernate.Session;
+import org.hibernate.internal.SessionImpl;
+import org.hibernate.jdbc.Work;
 import org.junit.Test;
 
 import util.Search;
@@ -173,47 +175,62 @@ public class PredictAssociation {
 		return relationCount;
 	}
 	
-	private static List<Integer> findFatherIds(int childId)throws SQLException{
-		Session session = HibernateSessionFactory.getSession();
-		Connection connection = session.connection();
+	private static List<Integer> findFatherIds(final int childId)throws SQLException{
+		final List<Integer> flist = new LinkedList<Integer>();
+		Session session =  HibernateSessionFactory.getSession();
+		session.doWork(
+		new Work() {
+	        public void execute(Connection connection) throws SQLException 
+	        { 
+	        	PreparedStatement statement = connection.prepareStatement("select parent_id from t_concept_rels where CHILD_ID = ?");
+	    		statement.setInt(1, childId);
+	    		ResultSet rs = statement.executeQuery();
+	    		
+	    		
+	    		
+	    		while(rs.next()){
+	    			flist.add(rs.getInt(1));
+	    		}
+	    		
+//	    		System.out.println(flist.size());
+//	    		System.out.println(flist.get(0));
+	    		rs.close();
+	    		statement.close();
+	    		
+	        }
+	    });
 		
-		PreparedStatement statement = connection.prepareStatement("select parent_id from t_concept_rels where CHILD_ID = ?");
-		statement.setInt(1, childId);
-		ResultSet rs = statement.executeQuery();
 		
-		List<Integer> flist = new LinkedList<Integer>();
 		
-		while(rs.next()){
-			flist.add(rs.getInt(1));
-		}
-		
-//		System.out.println(flist.size());
-//		System.out.println(flist.get(0));
-		rs.close();
-		statement.close();
-		connection.close();
 		return flist;
 	}
 	
-	private static List<Integer> findChildIds(int fid)throws SQLException{
-		Session session = HibernateSessionFactory.getSession();
-		Connection connection = session.connection();
+	private static List<Integer> findChildIds(final int fid)throws SQLException{
+	    
+		final List<Integer> clist = new LinkedList<Integer>();
+		Session session =  HibernateSessionFactory.getSession();
+		session.doWork(
+		new Work() {
+	        public void execute(Connection connection) throws SQLException 
+	        { 
+	        	PreparedStatement statement = connection.prepareStatement("select CHILD_ID from t_concept_rels where parent_id = ?");
+	    		statement.setInt(1, fid);
+	    		ResultSet rs = statement.executeQuery();
+	    		
+	    		
+	    		while(rs.next()){
+	    			clist.add(rs.getInt(1));
+	    		}
+	    		
+//	    		System.out.println(clist.size());
+//	    		System.out.println(clist.get(0));
+	    		rs.close();
+	    		statement.close();
+	    		
+	        }
+	    });
 		
-		PreparedStatement statement = connection.prepareStatement("select CHILD_ID from t_concept_rels where parent_id = ?");
-		statement.setInt(1, fid);
-		ResultSet rs = statement.executeQuery();
 		
-		List<Integer> clist = new LinkedList<Integer>();
-		
-		while(rs.next()){
-			clist.add(rs.getInt(1));
-		}
-		
-//		System.out.println(clist.size());
-//		System.out.println(clist.get(0));
-		rs.close();
-		statement.close();
-		connection.close();
 		return clist;
 	}
 	
@@ -224,24 +241,32 @@ public class PredictAssociation {
 	 * @return
 	 * @throws SQLException
 	 */
-	public static List<Integer> findRelations(int id1, int id2) throws SQLException{
-		Session session = HibernateSessionFactory.getSession();
-		Connection connection = session.connection();
+	public static List<Integer> findRelations(final int id1, final int id2) throws SQLException{
+		final List<Integer> typelist = new LinkedList<Integer>();
+    	
+		Session session =  HibernateSessionFactory.getSession();
+		session.doWork(
+		new Work() {
+	        public void execute(Connection connection) throws SQLException 
+	        { 
+	        	PreparedStatement statement = connection.prepareStatement("select TYPE from t_associative_rels where LEFT_CONC_ID = ? and RIGHT_CONC_ID = ?");
+	    		statement.setInt(1, id1);
+	    		statement.setInt(2, id2);
+	    		ResultSet rs = statement.executeQuery();
+	    		
+	    		
+	    		while(rs.next()){
+	    			typelist.add(rs.getInt(1));
+	    		}
+//	    		System.out.println(typelist.size());
+	    		rs.close();
+	    		statement.close();
+	        }
+	    });
 		
-		PreparedStatement statement = connection.prepareStatement("select TYPE from t_associative_rels where LEFT_CONC_ID = ? and RIGHT_CONC_ID = ?");
-		statement.setInt(1, id1);
-		statement.setInt(2, id2);
-		ResultSet rs = statement.executeQuery();
 		
-		List<Integer> typelist = new LinkedList<Integer>();
+	
 		
-		while(rs.next()){
-			typelist.add(rs.getInt(1));
-		}
-//		System.out.println(typelist.size());
-		rs.close();
-		statement.close();
-		connection.close();
 		return typelist;
 	}
 	
@@ -252,35 +277,43 @@ public class PredictAssociation {
 	 * @return
 	 * @throws SQLException
 	 */
-	public static List<Integer> findRelations(int id1, List<Integer> list) throws SQLException{
-		Session session = HibernateSessionFactory.getSession();
-		Connection connection = session.connection();
+	public static List<Integer> findRelations(final int id1, final List<Integer> list) throws SQLException{
+		final List<Integer> typelist = new LinkedList<Integer>();
 		
-		PreparedStatement statement = connection.prepareStatement("select TYPE,RIGHT_CONC_ID from t_associative_rels where LEFT_CONC_ID = ? order by RIGHT_CONC_ID");
-		statement.setInt(1, id1);
-		ResultSet rs = statement.executeQuery();
+		Session session =  HibernateSessionFactory.getSession();
+		session.doWork(
+		new Work() {
+	        public void execute(Connection connection) throws SQLException 
+	        { 
+	        	PreparedStatement statement = connection.prepareStatement("select TYPE,RIGHT_CONC_ID from t_associative_rels where LEFT_CONC_ID = ? order by RIGHT_CONC_ID");
+	    		statement.setInt(1, id1);
+	    		ResultSet rs = statement.executeQuery();
+	    		
+	    		int minId = list.get(0);
+	    		int maxId = list.get(list.size()-1);
+	    		while(rs.next()){
+	    			int trid = rs.getInt(2);
+	    			if(trid < minId)
+	    				continue;
+	    			
+	    			if(maxId < trid)
+	    				break;
+//	    			boolean
+	    			
+	    			if(Search.binarysearch(trid, list) != -1){
+	    				typelist.add(rs.getInt(1));//将关系添加进结果向量
+	    			}
+	    			
+	    		}
+//	    		System.out.println(typelist.size());
+	    		rs.close();
+	    		statement.close();
+	        }
+	    });
 		
-		List<Integer> typelist = new LinkedList<Integer>();
-		int minId = list.get(0);
-		int maxId = list.get(list.size()-1);
-		while(rs.next()){
-			int trid = rs.getInt(2);
-			if(trid < minId)
-				continue;
-			
-			if(maxId < trid)
-				break;
-//			boolean
-			
-			if(Search.binarysearch(trid, list) != -1){
-				typelist.add(rs.getInt(1));//将关系添加进结果向量
-			}
-			
-		}
-//		System.out.println(typelist.size());
-		rs.close();
-		statement.close();
-		connection.close();
+		
+	
+		
 		return typelist;
 	}
 	

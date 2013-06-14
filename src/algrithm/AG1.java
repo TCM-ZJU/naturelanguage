@@ -38,6 +38,8 @@ public class AG1 {
 		Map<Integer, String> tupeMap = TypeMap.getTypeMap();
 		String raw;
 		while((raw=br.readLine())!=null){
+			//System.out.println("Each line of the paper: " + raw);
+			
 			String sents[] = Sentence.sentenceBreak(raw);
 			for(String sent:sents){
 				
@@ -87,7 +89,7 @@ public class AG1 {
 				pw.println(sb);
 				pw.flush();
 			}
-		
+		   
 		}
 		
 		br.close();
@@ -95,10 +97,12 @@ public class AG1 {
 
 	@Test
 	public void testAg3()throws Exception{
-		String docDirName = "f:/docsrc/";
+		String docDirName = "docs/";
 		File docDir = new File(docDirName);
 		String [] files = docDir.list(new FilenameFilter(){
 			public boolean accept(File dir, String name) {
+				
+				
 				if(name.matches("\\d*\\.txt"))
 					return true;
 				else
